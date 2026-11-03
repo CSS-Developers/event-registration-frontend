@@ -8,6 +8,7 @@ import { EventListPage } from './pages/EventListPage'
 import { HomePage } from './pages/HomePage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ResendPage } from './pages/ResendPage'
+import { ScannerPage } from './pages/ScannerPage'
 import { TicketPage } from './pages/TicketPage'
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/events/:id/register" element={<RegisterPage />} />
             <Route path="/tickets/:code" element={<TicketPage />} />
             <Route path="/resend" element={<ResendPage />} />
+            <Route path="/scanner/:eventId" element={<ScannerPage />} />
             <Route
               path="*"
               element={

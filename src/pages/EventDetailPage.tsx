@@ -462,7 +462,7 @@ function RegistrationPass({
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="font-display text-5xl leading-none font-black text-brand">FREE</p>
-            <p className="mt-2 text-sm text-body">Open to all students · no account needed</p>
+            <p className="mt-2 text-sm text-body">Open to all students · Just grab your ticket</p>
           </div>
           <div className="text-right">
             <p className="label-mono text-[10px] text-soft">Seats left</p>
