@@ -62,6 +62,25 @@
   animation: bot-hand-sway 3.6s ease-in-out -0.45s infinite reverse;
 }
 
+/* Peek-a-boo with a wave. The hero bot leans out from behind the logo, so the
+   arm on his open side is the one that lifts: it comes up as he arrives, the
+   wrist swings twice while he is out, and both are back down before he tucks
+   away. Every stop is a percentage of the same 6.4s cycle as bot-peek-a-boo, so
+   the gesture stays locked to the lean.
+
+   The arm pivots at the shoulder where it meets the body (view-box units, not
+   the arm's own box), so the upper arm stays against the shell instead of
+   swinging clear of it and reading as a detached limb. */
+.bot-container.bot-wave .bot-arm.left {
+  transform-box: view-box;
+  transform-origin: 35px 88px;
+  animation: bot-wave-arm 6.4s linear 0.9s infinite;
+}
+
+.bot-container.bot-wave .bot-hand.left {
+  animation: bot-wave-hand 6.4s ease-in-out 0.9s infinite;
+}
+
 .bot-head {
   transform-origin: 50% 92%;
   animation: bot-head-bob 4.6s ease-in-out infinite;
@@ -203,6 +222,57 @@
   }
 }
 
+/* The arm comes out to a little above shoulder height. It stops there because
+   the bot's arm is shorter than his head is wide: any higher and the mitt ends
+   up behind the ear pod, which punches a hole in it. */
+@keyframes bot-wave-arm {
+  0%,
+  22% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0.3, 1.35, 0.5, 1);
+  }
+  30% {
+    transform: rotate(106deg);
+  }
+  46% {
+    transform: rotate(102deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0.6);
+  }
+  54%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* The wrist swings between leaning out and standing upright, so the mitt fans
+   through the clear space on his open side instead of reaching back into the
+   cheek. Both extremes were checked against the head: neither clips. */
+@keyframes bot-wave-hand {
+  0%,
+  22% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(44deg);
+  }
+  34% {
+    transform: rotate(30deg);
+  }
+  38% {
+    transform: rotate(58deg);
+  }
+  42% {
+    transform: rotate(30deg);
+  }
+  46% {
+    transform: rotate(44deg);
+  }
+  54%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
 @keyframes bot-head-bob {
   0%,
   100% {
@@ -267,6 +337,11 @@
   .bot-head,
   .bot-thrust,
   .bot-shadow {
+    animation: none;
+  }
+
+  .bot-container.bot-wave .bot-arm.left,
+  .bot-container.bot-wave .bot-hand.left {
     animation: none;
   }
 

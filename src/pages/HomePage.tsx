@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useInView } from 'motion/react'
 import { Link } from 'react-router-dom'
+import { absoluteUrl } from '../api/client'
 import { listEvents } from '../api/events'
 import type { PublicEvent } from '../api/types'
 import { ExhibitionRow } from '../components/events/ExhibitionRow'
@@ -77,36 +78,53 @@ export function HomePage() {
     void load()
   }, [load, attempt])
 
+  const events = state.status === 'ready' ? state.events : []
+  const posters = events
+    .map((event) => event.bannerUrl)
+    .filter((url): url is string => Boolean(url))
+    .map((url) => absoluteUrl(url))
+
   return (
     <>
-      <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
-        <AnimatePresence mode="wait">
-          {introDone ? (
-            <motion.div
-              key="logo"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-            >
-              <LogoHero botAway={botHere} />
-            </motion.div>
-          ) : (
-            <motion.div key="intro" exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+      <AnimatePresence mode="wait">
+        {introDone ? (
+          <motion.div
+            key="logo"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+          >
+            <LogoHero
+              botAway={botHere}
+              nextEvent={events[0] ?? null}
+              loading={state.status === 'loading'}
+              posters={posters}
+            />
+          </motion.div>
+        ) : (
+          <motion.div key="intro" exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+            <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
               <HeroSection />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <section
         inert={!introDone}
         aria-hidden={!introDone}
-        className={`relative border-t border-border transition-opacity duration-700 ease-out ${
+        className={`transition-opacity duration-700 ease-out ${
           introDone ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 pt-8 pb-16 sm:px-6">
-          <UpcomingHeadline ref={headingRef} look={GAZE[look]} revealed={botHere} />
+        <div className="mx-auto max-w-7xl px-4 pt-14 pb-16 sm:px-6">
+          <UpcomingHeadline
+            ref={headingRef}
+            look={GAZE[look]}
+            revealed={botHere}
+            count={events.length}
+            nextIso={events[0]?.startsAt}
+          />
 
           {(state.status === 'loading' || (state.status === 'ready' && !introDone)) && (
             <ExhibitionSkeleton />
@@ -136,14 +154,14 @@ export function HomePage() {
                   to="/events"
                   className="font-bold text-brand transition-colors hover:text-brand-strong hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
-                  View all events →
+                  View all events &rarr;
                 </Link>
               </div>
             </div>
           )}
-
-          {state.status === 'ready' && introDone && <HowItWorks />}
         </div>
+
+        {introDone && <HowItWorks />}
       </section>
     </>
   )

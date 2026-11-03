@@ -46,6 +46,15 @@
   --warning: #f79009;
   --warning-soft: #fef3e2;
   --shadow: 0 10px 30px -12px rgb(64 56 44 / 0.16);
+
+  /* The ink band. Pure black next to warm alabaster reads cold and sunken, so the
+     dark surface is the same temperature as the page: a brown-black. --ink-text and
+     --ink-muted are measured against it (15.9:1 and 7.4:1). */
+  --ink: #14130f;
+  --ink-raised: #1e1c17;
+  --ink-text: #f6f4ef;
+  --ink-muted: #a8a29a;
+  --ink-line: rgb(246 244 239 / 0.16);
 }
 
 @theme {
@@ -73,6 +82,11 @@
   --color-danger-soft: var(--danger-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
+  --color-ink: var(--ink);
+  --color-ink-raised: var(--ink-raised);
+  --color-ink-text: var(--ink-text);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-line: var(--ink-line);
 
   --shadow-card: var(--shadow);
 
@@ -206,6 +220,16 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
+}
+
+/* The season rail is a perforation, not a drawn line: short dashes the date stamps sit on,
+   so the page reads as a ticket torn down the middle rather than a table with a border. */
+@utility rail-line {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--soft) 60%, transparent) 0 5px,
+    transparent 5px 11px
+  );
 }
 
 /* The events rail's edge fade. A straight `surface → transparent` ramp reads as a flat milk band

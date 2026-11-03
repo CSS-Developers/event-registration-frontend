@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { absoluteUrl } from '../../api/client'
 import type { PublicEvent } from '../../api/types'
-import { formatAccraShort, isHappeningNow } from '../../lib/dates'
+import { formatAccraTime, isHappeningNow } from '../../lib/dates'
 import { Badge } from '../ui/Badge'
+import { DateStamp } from '../ui/DateStamp'
 import { MapPinIcon } from '../ui/icons'
 import { SpotsBadge } from './SpotsBadge'
 
@@ -38,13 +39,11 @@ export function EventCard({
           />
         ) : (
           <div
-            className="flex h-full w-full items-end bg-gradient-to-br from-black via-neutral-800 to-neutral-600 p-4"
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-ink via-ink-raised to-[#3b372e]"
             aria-hidden="true"
           >
-            <span className="flex items-center gap-2 text-sm font-bold text-white/90">
-              <MapPinIcon width={16} height={16} />
-              No photo for this event
-            </span>
+            {/* No banner: the date is the poster. */}
+            <DateStamp iso={event.startsAt} size="lg" tone="ink" className="-rotate-3" />
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-4 pt-16 pb-4 transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0">
@@ -60,7 +59,7 @@ export function EventCard({
               focus ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'
             }`}
           >
-            {formatAccraShort(event.startsAt)}
+            {formatAccraTime(event.startsAt)} Accra
           </p>
           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white/85 sm:text-sm">
             <MapPinIcon width={14} height={14} className="shrink-0" />
@@ -69,7 +68,13 @@ export function EventCard({
         </div>
       </Link>
 
-      <div className="pointer-events-none absolute top-4 left-4 z-30 flex flex-wrap gap-2">
+      {showImage && (
+        <div className="pointer-events-none absolute top-4 left-4 z-30">
+          <DateStamp iso={event.startsAt} size="sm" />
+        </div>
+      )}
+
+      <div className="pointer-events-none absolute top-4 right-4 z-30 flex flex-wrap justify-end gap-2">
         {live && (
           <Badge
             tone="brand-tint"

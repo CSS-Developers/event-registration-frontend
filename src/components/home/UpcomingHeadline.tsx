@@ -1,5 +1,6 @@
 import type { Ref } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
+import { accraStamp } from '../../lib/dates'
 import { Bot } from '../hero/Bot'
 import type { BotLook } from '../hero/Bot'
 
@@ -7,12 +8,17 @@ interface Props {
   look: BotLook
   /** True once the heading has scrolled into view: the bot rises out of it. */
   revealed: boolean
+  /** How many events the rail is showing, for the label line. */
+  count: number
+  /** The soonest start, for the label line. */
+  nextIso?: string
   ref?: Ref<HTMLDivElement>
 }
 
-export function UpcomingHeadline({ look, revealed, ref }: Props) {
+export function UpcomingHeadline({ look, revealed, count, nextIso, ref }: Props) {
   const reduced = useReducedMotion()
   const up = reduced || revealed
+  const next = nextIso ? accraStamp(nextIso) : null
 
   return (
     <div ref={ref} className="relative mb-8">
@@ -36,6 +42,24 @@ export function UpcomingHeadline({ look, revealed, ref }: Props) {
       <h2 className="text-center font-display text-3xl font-black text-brand sm:text-4xl">
         Upcoming events
       </h2>
+
+      {count > 0 && (
+        <p className="label-mono mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-body">
+          <span>
+            {count} {count === 1 ? 'event' : 'events'}
+          </span>
+          <span aria-hidden="true">&middot;</span>
+          <span>Free entry</span>
+          {next && (
+            <>
+              <span aria-hidden="true">&middot;</span>
+              <span>
+                Next {next.day} {next.month}
+              </span>
+            </>
+          )}
+        </p>
+      )}
     </div>
   )
 }

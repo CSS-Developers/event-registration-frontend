@@ -3,6 +3,10 @@ export interface MonthEntry {
   id: string
   /** Compact label, e.g. "Oct 26". */
   label: string
+  /** Month name alone, for the cover's contents list. */
+  month: string
+  /** Year alone, for the cover's contents list. */
+  year: string
   count: number
 }
 
@@ -21,7 +25,7 @@ export function MonthStrip({ months, activeId, onPick }: Props) {
   return (
     <nav
       aria-label="Jump to a month"
-      className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {months.map((month) => {
         const active = month.id === activeId
@@ -31,14 +35,14 @@ export function MonthStrip({ months, activeId, onPick }: Props) {
             type="button"
             aria-current={active ? 'true' : undefined}
             onClick={() => onPick(month.id)}
-            className={`label-mono flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heading ${
+            className={`label-mono flex shrink-0 items-baseline gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heading ${
               active
-                ? 'border-black bg-black text-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]'
-                : 'bg-surface text-body hover:border-brand hover:text-brand'
+                ? 'border-ink bg-ink text-ink-text'
+                : 'border-border bg-transparent text-body hover:border-brand hover:text-brand'
             }`}
           >
             {month.label}
-            <span className={active ? '' : 'text-body'}>{month.count}</span>
+            <span className={active ? 'text-brand' : 'text-soft'}>{month.count}</span>
           </button>
         )
       })}

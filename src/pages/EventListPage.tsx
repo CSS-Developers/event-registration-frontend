@@ -5,6 +5,7 @@ import type { PublicEvent } from '../api/types'
 import { EventResult } from '../components/events/EventResult'
 import { EventSearch } from '../components/events/EventSearch'
 import { MonthStrip, type MonthEntry } from '../components/events/MonthStrip'
+import { SeasonCover } from '../components/events/SeasonCover'
 import { SeasonRail } from '../components/events/SeasonRail'
 import { RAIL_GRID, RAIL_LINE } from '../components/events/rail'
 import { buildChapters } from '../components/events/chapters'
@@ -14,7 +15,6 @@ import { Skeleton } from '../components/ui/Skeleton'
 import { isHappeningNow } from '../lib/dates'
 import { uiMessage } from '../lib/errorMessage'
 import { formatWait, useCountdown } from '../lib/useCountdown'
-import neonMark from '../visuals/css_neon_mark.svg'
 
 const PAGE_SIZE = 50
 const DEBOUNCE_MS = 280
@@ -121,6 +121,11 @@ export function EventListPage() {
     setPage(next)
   }, [page, state, term])
 
+  const clearSearch = useCallback(() => {
+    setTyped('')
+    setTerm('')
+  }, [])
+
   // Memoised on `state` alone: the observer effect below depends on this, and rebuilding the array
   // on every render would re-connect the observer on every render (it fires on connect).
   const chapters = useMemo(
@@ -130,6 +135,8 @@ export function EventListPage() {
   const months: MonthEntry[] = chapters.map((chapter) => ({
     id: chapter.id,
     label: chapter.label,
+    month: chapter.month,
+    year: chapter.year,
     count: chapter.events.length,
   }))
 
@@ -178,134 +185,177 @@ export function EventListPage() {
 
   const remaining = ready ? Math.max(0, total - events.length) : 0
 
+  const moreButton = (
+    <Button
+      variant="brand"
+      disabled={loadingMore || wait > 0}
+      onClick={() => void loadMore()}
+    >
+      {loadingMore ? (
+        <>
+          <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12a9 9 0 11-6.219-8.56" />
+          </svg>
+          Loading…
+        </>
+      ) : wait > 0 ? (
+        `Try again in ${formatWait(wait)}`
+      ) : (
+        <>
+          Show {Math.min(PAGE_SIZE, remaining)} more events
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </>
+      )}
+    </Button>
+  )
+
+  const railFooter =
+    remaining > 0 ? (
+      <div>
+        <p className="font-display text-xl font-black tracking-tight text-heading">
+          The season continues.
+        </p>
+        <p className="mt-1.5 max-w-sm text-sm text-body">
+          {events.length} of {total} events loaded. The rest are further down the rail.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-4">{moreButton}</div>
+      </div>
+    ) : (
+      <div>
+        <p className="font-display text-xl font-black tracking-tight text-heading">
+          That&rsquo;s the season so far.
+        </p>
+        <p className="mt-1.5 max-w-sm text-sm text-body">
+          {total} event{total === 1 ? '' : 's'} on the calendar. New ones land here first.
+        </p>
+      </div>
+    )
+
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      <div className="flex items-end justify-between gap-4 border-b pt-8 pb-4">
-        <div>
-          <p className="label-mono text-[11px] text-body">
-            KNUST Computer Science Society
-          </p>
-          <h1 className="mt-2 font-display text-4xl font-black tracking-tight text-heading sm:text-5xl">
-            What&apos;s on
-          </h1>
-        </div>
-        <div className="hidden shrink-0 md:block">
-          <img src={neonMark} alt="" className="h-24 w-24" />
-        </div>
-      </div>
+    <>
+      <SeasonCover
+        months={months}
+        total={total}
+        liveCount={liveCount}
+        firstIso={events[0]?.startsAt}
+        lastIso={events[events.length - 1]?.startsAt}
+        loading={state.status === 'loading'}
+        error={state.status === 'error'}
+        searching={searching}
+        term={term}
+        onPick={jumpToMonth}
+      />
 
-      <div className="sticky top-16 z-30 -mx-4 mt-6 border-y border-border bg-surface/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
-        <div className="flex flex-col gap-2.5 md:flex-row md:items-center md:gap-4">
-          <div className="w-full md:max-w-xs">
-            <EventSearch value={typed} onValueChange={setTyped} />
-          </div>
-          {!searching && months.length > 0 && (
-            <MonthStrip months={months} activeId={activeMonth} onPick={jumpToMonth} />
-          )}
-          <p role="status" aria-live="polite" aria-atomic="true" className="ml-auto hidden font-mono text-sm font-semibold text-body md:block">
-            {stat}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-8 mb-16">
-        {state.status === 'loading' && <ListSkeleton />}
-
-        {state.status === 'error' &&
-          (state.code === 'RATE_LIMITED' ? (
-            <RateLimitNotice wait={wait} onRetry={() => setAttempt((value) => value + 1)} />
-          ) : (
-            <ErrorState
-              message={state.message}
-              onRetry={() => setAttempt((value) => value + 1)}
-            />
-          ))}
-
-        {ready && events.length === 0 && (
-          <div className="rounded-3xl border bg-surface-raised px-6 py-14 text-center">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-inset">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-soft">
-                {searching ? (
-                  <path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
-                ) : (
-                  <>
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <path d="M16 2v4M8 2v4M3 10h18" />
-                  </>
-                )}
-              </svg>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="sticky top-16 z-30 -mx-4 mt-2 border-y border-border bg-surface-raised/95 px-4 py-2.5 backdrop-blur-md sm:-mx-6 sm:px-6">
+          <div className="flex flex-col gap-2.5 md:flex-row md:items-center md:gap-5">
+            <div className="w-full md:max-w-xs">
+              <EventSearch value={typed} onValueChange={setTyped} />
             </div>
-            <p className="font-heading text-xl font-black text-heading">
-              {searching ? `Nothing matches “${term}”.` : 'No upcoming events right now.'}
-            </p>
-            <p className="mt-2 text-body">
-              {searching ? 'Try a shorter word, or search by venue.' : 'Check back soon.'}
-            </p>
-            {searching && (
-              <Button
-                variant="secondary"
-                className="mt-5"
-                onClick={() => {
-                  setTyped('')
-                  setTerm('')
-                }}
-              >
-                Clear search
-              </Button>
+            {!searching && months.length > 0 && (
+              <MonthStrip months={months} activeId={activeMonth} onPick={jumpToMonth} />
             )}
+            <p
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className="sr-only font-mono text-sm font-semibold text-body md:not-sr-only md:ml-auto md:block"
+            >
+              {stat}
+            </p>
           </div>
-        )}
+        </div>
 
-        {ready && events.length > 0 && (
-          <>
-            {searching ? (
-              <ul id="event-list" className="border-t">
-                {events.map((event) => (
-                  <EventResult key={event.id} event={event} />
-                ))}
-              </ul>
+        <div className="mt-7 mb-16">
+          {state.status === 'loading' && <ListSkeleton />}
+
+          {state.status === 'error' &&
+            (state.code === 'RATE_LIMITED' ? (
+              <RateLimitNotice wait={wait} onRetry={() => setAttempt((value) => value + 1)} />
             ) : (
-              <SeasonRail chapters={chapters} next={events[0]} />
-            )}
+              <ErrorState
+                message={state.message}
+                onRetry={() => setAttempt((value) => value + 1)}
+              />
+            ))}
 
-            {moreError && (
-              <div
-                role="alert"
-                className="mx-auto mt-8 max-w-lg rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-center text-sm font-semibold text-danger"
-              >
-                {moreError}
-              </div>
-            )}
-
-            {remaining > 0 && (
-              <div className="mt-8 flex justify-center">
-                <Button
-                  variant="primary"
-                  disabled={loadingMore || wait > 0}
-                  onClick={() => void loadMore()}
-                >
-                  {loadingMore ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 12a9 9 0 11-6.219-8.56" />
-                      </svg>
-                      Loading…
-                    </>
-                  ) : wait > 0 ? (
-                    `Try again in ${formatWait(wait)}`
+          {ready && events.length === 0 && (
+            <div className="rounded-3xl border bg-surface-raised px-6 py-14 text-center">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-inset">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-soft">
+                  {searching ? (
+                    <path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
                   ) : (
                     <>
-                      Show {Math.min(PAGE_SIZE, remaining)} more events
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 5v14M5 12l7 7 7-7" />
-                      </svg>
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <path d="M16 2v4M8 2v4M3 10h18" />
                     </>
                   )}
-                </Button>
+                </svg>
               </div>
-            )}
-          </>
-        )}
+              <p className="font-heading text-xl font-black text-heading">
+                {searching ? `Nothing matches “${term}”.` : 'No upcoming events right now.'}
+              </p>
+              <p className="mt-2 text-body">
+                {searching ? 'Try a shorter word, or search by venue.' : 'Check back soon.'}
+              </p>
+              {searching && (
+                <Button variant="secondary" className="mt-5" onClick={clearSearch}>
+                  Clear search
+                </Button>
+              )}
+            </div>
+          )}
+
+          {ready && events.length > 0 && (
+            <>
+              {searching ? (
+                <>
+                  <div className="flex flex-wrap items-baseline justify-between gap-3 border-b pb-3">
+                    <p className="label-mono text-[11px] text-body">
+                      Index · {total} {total === 1 ? 'match' : 'matches'} for “{term}”
+                    </p>
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      className="text-sm font-bold text-brand transition-colors hover:text-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                    >
+                      Back to the season →
+                    </button>
+                  </div>
+
+                  <ul id="event-list" className="divide-y">
+                    {events.map((event, index) => (
+                      <EventResult key={event.id} event={event} index={index} />
+                    ))}
+                  </ul>
+
+                  {remaining > 0 && (
+                    <div className="mt-8 flex flex-wrap items-center gap-4">
+                      {moreButton}
+                      <p className="label-mono text-[10px] text-body">
+                        {events.length} of {total} loaded
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <SeasonRail chapters={chapters} next={events[0]} footer={railFooter} />
+              )}
+
+              {moreError && (
+                <div
+                  role="alert"
+                  className="mx-auto mt-8 max-w-lg rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-center text-sm font-semibold text-danger"
+                >
+                  {moreError}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {showBackToTop && (
@@ -320,7 +370,7 @@ export function EventListPage() {
           </svg>
         </button>
       )}
-    </div>
+    </>
   )
 }
 

@@ -41,6 +41,7 @@ const accraMonthName = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Accr
 const accraMonthShort = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Accra', month: 'short' })
 const accraMonthYear = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Accra', month: 'long', year: 'numeric' })
 const accraWeekdayName = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Accra', weekday: 'long' })
+const accraYearNum = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Accra', year: 'numeric' })
 
 export function accraShortMonth(iso: string): string {
   return accraMonthShort.format(new Date(iso))
@@ -51,6 +52,7 @@ export function accraDateParts(iso: string): {
   month: string
   monthYear: string
   weekday: string
+  year: string
 } {
   const date = new Date(iso)
   return {
@@ -58,6 +60,7 @@ export function accraDateParts(iso: string): {
     month: accraMonthName.format(date),
     monthYear: accraMonthYear.format(date),
     weekday: accraWeekdayName.format(date),
+    year: accraYearNum.format(date),
   }
 }
 
@@ -109,6 +112,27 @@ export function accraShortMonthYear(iso: string): string {
 /** Today's date in Accra, e.g. "Tue 14 Oct", with the timezone named. */
 export function accraTodayLabel(): string {
   return `${accraTodayFormat.format(new Date())} (Accra time, GMT)`
+}
+
+const accraWeekdayShort = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Africa/Accra',
+  weekday: 'short',
+})
+
+/** The pieces of a date stamp: "Wed", "28", "Oct", "2026", all in Accra time. */
+export function accraStamp(iso: string): {
+  weekday: string
+  day: string
+  month: string
+  year: string
+} {
+  const date = new Date(iso)
+  return {
+    weekday: accraWeekdayShort.format(date),
+    day: accraDayNum.format(date),
+    month: accraMonthShort.format(date),
+    year: accraYearNum.format(date),
+  }
 }
 
 /** Human wait until an event starts, e.g. "in 7 days". Past events read "started". */

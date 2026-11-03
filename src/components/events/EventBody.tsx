@@ -50,7 +50,7 @@ export function EventBody({ event }: { event: PublicEvent }) {
         to={registerable ? `/events/${event.id}/register` : `/events/${event.id}`}
         className={`mt-3.5 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heading ${
           registerable
-            ? 'bg-black text-white shadow-[0_4px_14px_-4px_rgba(0,0,0,0.4)] hover:bg-neutral-800'
+            ? 'bg-brand text-on-brand shadow-[0_8px_18px_-10px_rgba(45,94,240,0.8)] hover:bg-brand-strong'
             : 'text-brand hover:bg-brand-soft'
         }`}
       >

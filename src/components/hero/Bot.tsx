@@ -18,6 +18,8 @@ interface BotProps {
   look?: BotLook
   /** Ornament only: hidden from assistive tech and not a click target. */
   decorative?: boolean
+  /** Peeks out of the hero: the arm on the open side lifts and waves. */
+  wave?: boolean
 }
 
 const clamp = (value: number | undefined) => Math.max(-1, Math.min(1, value ?? 0))
@@ -95,6 +97,7 @@ export function Bot({
   className = '',
   look,
   decorative = false,
+  wave = false,
 }: BotProps) {
   const [isBooping, setIsBooping] = useState(false)
   // Unique per instance so several bots on one page don't share gradient/mask ids.
@@ -136,7 +139,9 @@ export function Bot({
 
   return (
     <div
-      className={`bot-container ${status} ${isBooping ? 'boop' : ''} ${className}`.trim()}
+      className={`bot-container ${status} ${isBooping ? 'boop' : ''} ${
+        wave ? 'bot-wave' : ''
+      } ${className}`.trim()}
       style={containerStyle}
     >
       <svg

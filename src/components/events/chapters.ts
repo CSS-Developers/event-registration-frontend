@@ -8,6 +8,10 @@ export interface Chapter {
   heading: string
   /** Compact label for the index, e.g. "Oct 26". */
   label: string
+  /** Month name alone, set large in the chapter's heading. */
+  month: string
+  /** Year alone, kept beside the month in the label layer. */
+  year: string
   events: PublicEvent[]
 }
 
@@ -20,12 +24,14 @@ export function buildChapters(events: PublicEvent[]): Chapter[] {
   let current: Chapter | null = null
 
   for (const event of events) {
-    const heading = accraDateParts(event.startsAt).monthYear
-    if (!current || current.heading !== heading) {
+    const parts = accraDateParts(event.startsAt)
+    if (!current || current.heading !== parts.monthYear) {
       current = {
         id: `month-${chapters.length + 1}`,
-        heading,
+        heading: parts.monthYear,
         label: accraShortMonthYear(event.startsAt),
+        month: parts.month,
+        year: parts.year,
         events: [],
       }
       chapters.push(current)

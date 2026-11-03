@@ -4,7 +4,7 @@ const year = new Date().getFullYear()
 
 export function Footer() {
   return (
-    <footer className="mt-16 bg-black">
+    <footer className="mt-16 bg-ink">
       <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
         <p
           aria-hidden="true"
