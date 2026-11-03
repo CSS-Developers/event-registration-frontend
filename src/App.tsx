@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import { IntroProvider } from './components/intro/IntroProvider'
 import { Footer } from './components/layout/Footer'
@@ -14,6 +15,19 @@ import { TicketPage } from './pages/TicketPage'
 export default function App() {
   const location = useLocation()
   const isHome = location.pathname === '/'
+
+  useLayoutEffect(() => {
+    if (location.hash) {
+      const targetId = decodeURIComponent(location.hash.slice(1))
+      const target = document.getElementById(targetId)
+      if (target) {
+        target.scrollIntoView({ block: 'start' })
+        return
+      }
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.key, location.hash])
 
   return (
     <IntroProvider active={isHome}>

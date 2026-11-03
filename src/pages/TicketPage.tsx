@@ -7,7 +7,14 @@ import { Button } from '../components/ui/Button'
 import { Dialog } from '../components/ui/Dialog'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Skeleton } from '../components/ui/Skeleton'
-import { CheckIcon, DownloadIcon, MailIcon, PrinterIcon, TicketIcon } from '../components/ui/icons'
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  DownloadIcon,
+  MailIcon,
+  PrinterIcon,
+  TicketIcon,
+} from '../components/ui/icons'
 import { formatAccra, formatAccraClock } from '../lib/dates'
 
 type State =
@@ -113,6 +120,11 @@ export function TicketPage() {
           message="We couldn't load your ticket. Check your connection and try again."
           onRetry={() => setAttempt((a) => a + 1)}
         />
+        <p className="mt-6 text-center text-sm text-body">
+          <Link to="/events" className="font-bold text-heading hover:underline">
+            Back to events
+          </Link>
+        </p>
       </div>
     )
   }
@@ -130,6 +142,11 @@ export function TicketPage() {
         <Link to="/resend" className="mt-6 inline-block">
           <Button>Resend my ticket</Button>
         </Link>
+        <div>
+          <Link to="/events" className="mt-4 inline-block text-sm font-bold text-heading hover:underline">
+            Browse events
+          </Link>
+        </div>
       </div>
     )
   }
@@ -141,8 +158,16 @@ export function TicketPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
+      <Link
+        to={`/events/${ticket.event.id}`}
+        className="no-print inline-flex items-center gap-1.5 text-sm font-bold text-body transition-colors hover:text-heading"
+      >
+        <ArrowLeftIcon width={16} height={16} />
+        Back to event
+      </Link>
+
       {fromRegistration && !cancelled && (
-        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-green/30 bg-green-soft px-4 py-3 text-sm font-semibold text-green">
+        <div className="no-print mb-6 mt-5 flex items-start gap-3 rounded-2xl border border-green/30 bg-green-soft px-4 py-3 text-sm font-semibold text-green">
           <MailIcon width={18} height={18} className="mt-0.5 shrink-0" />
           Check your email for your ticket. It may take a minute to arrive.
         </div>
