@@ -209,4 +209,5 @@ export interface EndpointErrorCodes {
   cancelTicket: 'NOT_FOUND' | 'ALREADY_CHECKED_IN' | 'RATE_LIMITED' | 'INTERNAL_ERROR'
   resend: 'VALIDATION_ERROR' | 'INVALID_JSON' | 'PAYLOAD_TOO_LARGE' | 'RATE_LIMITED' | 'INTERNAL_ERROR'
   checkIn: ScannerErrorCode
+  verifyScannerKey: 'UNAUTHORIZED' | 'RATE_LIMITED' | 'INTERNAL_ERROR'
 }
