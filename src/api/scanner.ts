@@ -12,3 +12,15 @@ export function checkIn(eventId: string, ticketCode: string, checkInKey: string)
     { body: { ticketCode }, headers: { 'x-api-key': checkInKey } },
   )
 }
+
+/**
+ * Asks the backend whether a scanner key is accepted right now (not revoked, not expired).
+ * 200 means yes; 401 means wrong, revoked or expired. Used by the login box before opening the scanner.
+ */
+export function verifyScannerKey(key: string) {
+  return request<{ valid: true }, EndpointErrorCodes['verifyScannerKey']>(
+    'GET',
+    '/api/scanner/verify',
+    { headers: { 'x-api-key': key } },
+  )
+}

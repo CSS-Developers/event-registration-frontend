@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { checkIn } from '../api/scanner'
+import { checkIn, verifyScannerKey } from '../api/scanner'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { formatAccraClock } from '../lib/dates'
@@ -15,7 +15,8 @@ type ResultState = {
 
 export function ScannerPage() {
   const { eventId = '' } = useParams()
-  const storageKey = `css-scanner-key:${eventId}`
+  // One key per browser session: a scanner key is not tied to an event.
+  const storageKey = 'css-scanner-key'
 
   const [keyValue, setKeyValue] = useState(() => {
     if (typeof window === 'undefined') return ''
@@ -28,6 +29,7 @@ export function ScannerPage() {
   const [keyReady, setKeyReady] = useState(Boolean(keyValue))
   const [manualCode, setManualCode] = useState('')
   const [busy, setBusy] = useState(false)
+  const [verifying, setVerifying] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
   const [cameraUnsupported, setCameraUnsupported] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
@@ -39,22 +41,15 @@ export function ScannerPage() {
   const streamRef = useRef<MediaStream | null>(null)
   const lastDecodedRef = useRef('')
 
+  // Only a key the backend has accepted is kept; a half-typed or rejected key never reaches storage.
   useEffect(() => {
-    if (keyValue) {
-      try {
-        window.sessionStorage.setItem(storageKey, keyValue)
-      } catch {
-        // Ignore storage issues; the key stays in memory only.
-      }
-      return
-    }
-
     try {
-      window.sessionStorage.removeItem(storageKey)
+      if (keyReady && keyValue) window.sessionStorage.setItem(storageKey, keyValue)
+      else window.sessionStorage.removeItem(storageKey)
     } catch {
-      // Ignore storage issues.
+      // Ignore storage issues; the key stays in memory only.
     }
-  }, [keyValue, storageKey])
+  }, [keyReady, keyValue, storageKey])
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -208,10 +203,37 @@ export function ScannerPage() {
     return () => window.clearInterval(intervalId)
   }, [busy, cameraOpen, handleCheckIn, paused])
 
-  const unlock = () => {
-    setKeyReady(Boolean(keyValue.trim()))
-    if (!keyValue.trim()) {
+  const unlock = async () => {
+    const key = keyValue.trim()
+    if (!key) {
       setResult({ tone: 'danger', title: 'Enter the scanner access key to continue.' })
+      return
+    }
+    setVerifying(true)
+    setResult(null)
+    const response = await verifyScannerKey(key)
+    setVerifying(false)
+
+    if (response.ok) {
+      setKeyValue(key)
+      setKeyReady(true)
+      return
+    }
+    if (response.code === 'UNAUTHORIZED') {
+      setResult({
+        tone: 'danger',
+        title: 'That key does not work.',
+        detail: 'It may be wrong, expired or revoked. Ask the organiser for a valid key.',
+      })
+    } else if (response.code === 'RATE_LIMITED') {
+      setResult({
+        tone: 'warning',
+        title: `Too many attempts. Wait ${response.retryAfterSeconds ?? 60} seconds.`,
+      })
+    } else if (response.code === 'NETWORK_ERROR') {
+      setResult({ tone: 'warning', title: 'Could not reach the server. Check your connection.' })
+    } else {
+      setResult({ tone: 'warning', title: "Couldn't check the key. Try again." })
     }
   }
 
@@ -228,7 +250,7 @@ export function ScannerPage() {
           <p className="text-xs font-black uppercase tracking-[0.2em] text-heading">Door scanner</p>
           <h1 className="mt-3 text-3xl">Open the check-in page</h1>
           <p className="mt-2 text-sm text-body">Enter the staff access key. It stays in this browser only.</p>
-          <form onSubmit={(event) => { event.preventDefault(); unlock() }} className="mt-6 space-y-4">
+          <form onSubmit={(event) => { event.preventDefault(); void unlock() }} className="mt-6 space-y-4">
             <Input
               label="Access key"
               type="password"
@@ -237,7 +259,9 @@ export function ScannerPage() {
               onValueChange={setKeyValue}
               placeholder="••••••••••••••••"
             />
-            <Button type="submit" className="w-full">Open scanner</Button>
+            <Button type="submit" className="w-full" disabled={verifying}>
+              {verifying ? 'Checking key…' : 'Open scanner'}
+            </Button>
           </form>
           {result && (
             <div
