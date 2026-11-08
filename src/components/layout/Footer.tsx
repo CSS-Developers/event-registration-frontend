@@ -35,6 +35,11 @@ export function Footer() {
                 Resend my ticket
               </Link>
             </li>
+            <li>
+              <Link to="/scanner" className="text-white/70 transition-colors hover:text-white">
+                Door scanner
+              </Link>
+            </li>
           </ul>
         </div>
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { checkIn, verifyScannerKey } from '../api/scanner'
+import { ScannerEventPicker } from '../components/scanner/ScannerEventPicker'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { formatAccraClock } from '../lib/dates'
@@ -282,6 +283,18 @@ export function ScannerPage() {
     )
   }
 
+  if (!eventId) {
+    return (
+      <ScannerEventPicker
+        onChangeKey={() => {
+          setKeyReady(false)
+          setKeyValue('')
+          setResult(null)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between gap-3">
@@ -364,7 +377,7 @@ export function ScannerPage() {
       </div>
 
       <div className="mt-6 text-center text-sm text-body">
-        <Link to="/events" className="font-bold text-heading hover:underline">Back to events</Link>
+        <Link to="/scanner" className="font-bold text-heading hover:underline">Choose a different event</Link>
       </div>
     </div>
   )
