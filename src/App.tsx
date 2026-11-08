@@ -47,6 +47,7 @@ export default function App() {
             <Route path="/events/:id/register" element={<RegisterPage />} />
             <Route path="/tickets/:code" element={<TicketPage />} />
             <Route path="/resend" element={<ResendPage />} />
+            <Route path="/scanner" element={<ScannerPage />} />
             <Route path="/scanner/:eventId" element={<ScannerPage />} />
             <Route
               path="*"
